@@ -79,7 +79,7 @@ Validated as a drop-in replacement inside [`smalltv-pomodoro`](https://github.co
 Measured in `smalltv-pomodoro` on a 240x240 ST7789 at 40 MHz SPI (November 2026), with the decoder using 16-bit LZW prefixes and per-frame transient buffers. Most of the remaining cost is on the drawing side, so the example shows the player patterns that made the difference:
 
 - **Schedule from the due time, not from the end of drawing.** With `playFrame(false, &delayMs)`, writing `next = millis() + delayMs` after the frame adds the draw time to every frame. A full-screen frame that takes 35 ms with a 40 ms delay then plays every 75 ms (~53% speed). Scheduling from the previous due time, with a small minimum gap for the rest of `loop()`, played four test GIFs at 98–105% of their requested rate. (`playFrame(true, ...)` already subtracts the decode time.)
-- **One SPI address window per opaque frame** instead of one per row, and **integer upscaling** for small GIFs (80x80 → 3x), computed once per row and sent `scale` times.
+- **One SPI address window per opaque frame, then just push pixels**, as AnimatedGIF's own examples already do (our earlier player set a window per row), and **integer upscaling** for small GIFs (80x80 → 3x), computed once per row and sent `scale` times.
 - **Optional lossy-noise cleanup:** near-black palette entries (R, G, B ≤ 12) become black, and a pixel very different from two similar horizontal neighbours takes their colour. It only runs when the frame's palette has those near-black entries, so clean pixel art is drawn unchanged. A 768-byte colour table built once per frame keeps it cheap. Allocate it when the GIF is opened, before the per-frame buffers.
 
 | Test GIF | Requested per frame | Draw time | Played at |
